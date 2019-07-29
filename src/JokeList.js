@@ -1,11 +1,13 @@
 import React, { Component } from 'react'
 import axios from 'axios'
+import uuid from 'uuid'
 import './JokeList.css';
+import Joke from './Joke';
 
 export default class JokeList extends Component {
 
   static defaultProps = {
-    defaultNoOfJokes: 100
+    defaultNoOfJokes: 10
   }
   
   constructor(props){
@@ -19,9 +21,16 @@ export default class JokeList extends Component {
     let jokes = [];
     while (jokes.length < this.props.defaultNoOfJokes){
       let jokeResponse = await axios.get('https://icanhazdadjoke.com/', {headers: {Accept: 'application/json'}});
-      jokes.push(jokeResponse.data.joke);
+      jokes.push({text: jokeResponse.data.joke, votes: 0, id: uuid()});
 			this.setState({jokes: jokes})
     }
+  }
+
+  handleVote = (id, delta) =>{
+    console.log(id)
+    this.setState(currentState => ({
+      jokes: currentState.jokes.map( joke => joke.id === id ? {...joke , votes: joke.votes + delta} : joke)
+    }))
   }
 
   render() {
@@ -33,7 +42,14 @@ export default class JokeList extends Component {
 				<button className='JokeList-getmore'>Fetch Jokes</button>
 			</div>
 			<div className='JokeList-jokes'>
-      	{this.state.jokes.map(joke => <div>{joke}</div>)}
+        {this.state.jokes.map(joke => 
+        <Joke 
+          key = {joke.id} 
+          id = {joke.id}
+          text = {joke.text} 
+          votes = {joke.votes}
+          vote = {this.handleVote}
+        />)}
 			</div>
     </div>
   )
