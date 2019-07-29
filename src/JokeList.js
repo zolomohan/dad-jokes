@@ -13,21 +13,25 @@ export default class JokeList extends Component {
   constructor(props){
     super(props);
     this.state = {
-      jokes: []
+      jokes: JSON.parse(window.localStorage.getItem('jokes')) || []
     }
   }
 
   async componentDidMount(){
+    if(this.state.jokes.length === 0) this.getJokes();
+  }
+
+  getJokes = async () =>{
     let jokes = [];
     while (jokes.length < this.props.defaultNoOfJokes){
       let jokeResponse = await axios.get('https://icanhazdadjoke.com/', {headers: {Accept: 'application/json'}});
       jokes.push({text: jokeResponse.data.joke, votes: 0, id: uuid()});
-			this.setState({jokes: jokes})
+      this.setState({jokes: jokes})
     }
+    window.localStorage.setItem('jokes', JSON.stringify(jokes));
   }
 
   handleVote = (id, delta) =>{
-    console.log(id)
     this.setState(currentState => ({
       jokes: currentState.jokes.map( joke => joke.id === id ? {...joke , votes: joke.votes + delta} : joke)
     }))
@@ -38,7 +42,7 @@ export default class JokeList extends Component {
     <div className='JokeList'>
 			<div className='JokeList-sidebar'>
     		<h1 className='JokeList-title'><span>Dad</span> Jokes</h1>
-				<img src='https://assets.dryicons.com/uploads/icon/svg/8927/0eb14c71-38f2-433a-bfc8-23d9c99b3647.svg' />
+				<img src='https://assets.dryicons.com/uploads/icon/svg/8927/0eb14c71-38f2-433a-bfc8-23d9c99b3647.svg' alt='ROFL_Emoji'/>
 				<button className='JokeList-getmore'>Fetch Jokes</button>
 			</div>
 			<div className='JokeList-jokes'>
