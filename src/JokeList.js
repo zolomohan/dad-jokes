@@ -22,9 +22,14 @@ export default class JokeList extends Component {
     while (jokes.length < this.props.defaultNoOfJokes){
       let jokeResponse = await axios.get('https://icanhazdadjoke.com/', {headers: {Accept: 'application/json'}});
       jokes.push({text: jokeResponse.data.joke, votes: 0, id: uuid()});
-      this.setState({jokes: jokes})
     }
-    window.localStorage.setItem('jokes', JSON.stringify(jokes));
+    this.setState(currentState => ({
+      jokes: [
+        ...currentState.jokes,
+        ...jokes
+      ]
+    }), () => window.localStorage.setItem('jokes', JSON.stringify(this.state.jokes)))
+    
   }
 
   handleVote = (id, delta) =>{
