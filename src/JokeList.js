@@ -13,11 +13,13 @@ export default class JokeList extends Component {
   constructor(props){
     super(props);
     this.state = {
-      jokes: JSON.parse(window.localStorage.getItem('jokes')) || []
+      jokes: JSON.parse(window.localStorage.getItem('jokes')) || [],
+      loading: false
     }
   }
 
   getJokes = async () =>{
+    this.setState({loading: true});
     let jokes = [];
     while (jokes.length < this.props.defaultNoOfJokes){
       let jokeResponse = await axios.get('https://icanhazdadjoke.com/', {headers: {Accept: 'application/json'}});
@@ -27,7 +29,8 @@ export default class JokeList extends Component {
       jokes: [
         ...currentState.jokes,
         ...jokes
-      ]
+      ],
+      loading: false
     }), () => window.localStorage.setItem('jokes', JSON.stringify(this.state.jokes)))
     
   }
@@ -43,24 +46,30 @@ export default class JokeList extends Component {
   }
 
   render() {
-  return (
-    <div className='JokeList'>
-			<div className='JokeList-sidebar'>
-    		<h1 className='JokeList-title'><span>Dad</span> Jokes</h1>
-				<img src='https://assets.dryicons.com/uploads/icon/svg/8927/0eb14c71-38f2-433a-bfc8-23d9c99b3647.svg' alt='ROFL_Emoji'/>
-				<button className='JokeList-getmore' onClick={this.getJokes}>Fetch Jokes</button>
-			</div>
-			<div className='JokeList-jokes'>
-        {this.state.jokes.map(joke => 
-        <Joke 
-          key = {joke.id} 
-          id = {joke.id}
-          text = {joke.text} 
-          votes = {joke.votes}
-          vote = {this.handleVote}
-        />)}
-			</div>
-    </div>
-  )
+    return (
+      <div className='JokeList'>
+  			<div className='JokeList-sidebar'>
+      		<h1 className='JokeList-title'><span>Dad</span> Jokes</h1>
+				  <img src='https://assets.dryicons.com/uploads/icon/svg/8927/0eb14c71-38f2-433a-bfc8-23d9c99b3647.svg' alt='ROFL_Emoji'/>
+				  <button className='JokeList-getmore' onClick={this.getJokes}>Fetch Jokes</button>
+			  </div>
+        <div className='JokeList-jokes'>
+        {this.state.loading 
+          ? <div className='JokeList-spinner'>
+              <i className='far fa-laugh fa-spin'></i>
+              <h1 className='JokeList-loading-title'>Loading...</h1>
+            </div>
+          : this.state.jokes.map(joke => 
+              <Joke 
+                key = {joke.id} 
+                id = {joke.id}
+                text = {joke.text} 
+                votes = {joke.votes}
+                vote = {this.handleVote}
+              />)
+          }
+			 </div>
+      </div>
+    )
   }
 }
