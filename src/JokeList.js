@@ -17,10 +17,6 @@ export default class JokeList extends Component {
     }
   }
 
-  async componentDidMount(){
-    if(this.state.jokes.length === 0) this.getJokes();
-  }
-
   getJokes = async () =>{
     let jokes = [];
     while (jokes.length < this.props.defaultNoOfJokes){
@@ -34,7 +30,11 @@ export default class JokeList extends Component {
   handleVote = (id, delta) =>{
     this.setState(currentState => ({
       jokes: currentState.jokes.map( joke => joke.id === id ? {...joke , votes: joke.votes + delta} : joke)
-    }))
+    }), () => window.localStorage.setItem('jokes', JSON.stringify(this.state.jokes)))
+  }
+
+  async componentDidMount(){
+    if(this.state.jokes.length === 0) this.getJokes();
   }
 
   render() {
@@ -43,7 +43,7 @@ export default class JokeList extends Component {
 			<div className='JokeList-sidebar'>
     		<h1 className='JokeList-title'><span>Dad</span> Jokes</h1>
 				<img src='https://assets.dryicons.com/uploads/icon/svg/8927/0eb14c71-38f2-433a-bfc8-23d9c99b3647.svg' alt='ROFL_Emoji'/>
-				<button className='JokeList-getmore'>Fetch Jokes</button>
+				<button className='JokeList-getmore' onClick={this.getJokes}>Fetch Jokes</button>
 			</div>
 			<div className='JokeList-jokes'>
         {this.state.jokes.map(joke => 
