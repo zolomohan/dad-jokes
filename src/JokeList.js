@@ -16,23 +16,29 @@ export default class JokeList extends Component {
       jokes: JSON.parse(window.localStorage.getItem('jokes')) || [],
       loading: false
     }
+    this.seenJokes = new Set(this.state.jokes.map(joke => joke.text));
   }
 
   getJokes = async () =>{
     this.setState({loading: true});
-    let jokes = [];
-    while (jokes.length < this.props.defaultNoOfJokes){
-      let jokeResponse = await axios.get('https://icanhazdadjoke.com/', {headers: {Accept: 'application/json'}});
-      jokes.push({text: jokeResponse.data.joke, votes: 0, id: uuid()});
+    try{
+      let jokes = [];
+      while (jokes.length < this.props.defaultNoOfJokes){
+        let jokeResponse = await axios.get('https://icanhazdadjoke.com/', {headers: {Accept: 'application/json'}});
+        if(!this.seenJokes.has(jokeResponse.data.joke))
+          jokes.push({text: jokeResponse.data.joke, votes: 0, id: uuid()});
+      }
+      this.setState(currentState => ({
+        jokes: [
+          ...currentState.jokes,
+          ...jokes
+        ],
+        loading: false
+      }), () => window.localStorage.setItem('jokes', JSON.stringify(this.state.jokes)))
+    } catch(err){
+      alert(err);
+      this.setState({loading: false});
     }
-    this.setState(currentState => ({
-      jokes: [
-        ...currentState.jokes,
-        ...jokes
-      ],
-      loading: false
-    }), () => window.localStorage.setItem('jokes', JSON.stringify(this.state.jokes)))
-    
   }
 
   handleVote = (id, delta) =>{
@@ -59,7 +65,7 @@ export default class JokeList extends Component {
               <i className='far fa-laugh fa-spin'></i>
               <h1 className='JokeList-loading-title'>Loading...</h1>
             </div>
-          : this.state.jokes.map(joke => 
+          : this.state.jokes.sort((a,b) => b.votes - a.votes).map(joke => 
               <Joke 
                 key = {joke.id} 
                 id = {joke.id}
